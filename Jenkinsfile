@@ -11,6 +11,23 @@ pipeline {
             println "${key} = ${value}"
           }
           
+          // Print GitHub related information
+          println "\nGitHub related information:"
+          println "GITHUB_EVENT_NAME = ${env.GITHUB_EVENT_NAME ?: 'Not set'}"
+          println "GITHUB_REF = ${env.GITHUB_REF ?: 'Not set'}"
+          println "GITHUB_SHA = ${env.GITHUB_SHA ?: 'Not set'}"
+          println "GITHUB_REPOSITORY = ${env.GITHUB_REPOSITORY ?: 'Not set'}"
+          
+          // Print build parameters if any
+          println "\nBuild parameters:"
+          if (params) {
+            params.each { key, value ->
+              println "${key} = ${value}"
+            }
+          } else {
+            println "No build parameters set"
+          }
+          
           // For push events, we only need the branch name
           def branchName = env.BRANCH_NAME
           def gitUrl = env.GIT_URL
