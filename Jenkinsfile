@@ -45,15 +45,17 @@ pipeline {
       }
       post {
         success {
-          // Update GitHub commit status
-          updateGitHubCommitStatus(
-            state: 'SUCCESS',
-            context: 'jenkins/unit-test',
-            description: 'Unit tests passed successfully'
-          )
-          
-          // Only add PR comment if this is a PR
+          // Update GitHub status using the GitHub plugin
           script {
+            def commitSha = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+            githubNotify(
+              status: 'SUCCESS',
+              context: 'jenkins/unit-test',
+              description: 'Unit tests passed successfully',
+              commitSha: commitSha
+            )
+            
+            // Only add PR comment if this is a PR
             if (env.CHANGE_ID) {
               def comment = """
                 ✅ Unit tests passed successfully!
@@ -68,15 +70,17 @@ pipeline {
           }
         }
         failure {
-          // Update GitHub commit status
-          updateGitHubCommitStatus(
-            state: 'FAILURE',
-            context: 'jenkins/unit-test',
-            description: 'Unit tests failed'
-          )
-          
-          // Only add PR comment if this is a PR
+          // Update GitHub status using the GitHub plugin
           script {
+            def commitSha = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+            githubNotify(
+              status: 'FAILURE',
+              context: 'jenkins/unit-test',
+              description: 'Unit tests failed',
+              commitSha: commitSha
+            )
+            
+            // Only add PR comment if this is a PR
             if (env.CHANGE_ID) {
               def comment = """
                 ❌ Unit tests failed!
