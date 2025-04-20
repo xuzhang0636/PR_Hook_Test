@@ -6,8 +6,8 @@ pipeline {
       steps {
         script {
           // For push events, we only need the branch name
-          def branchName = env.BRANCH_NAME ?: 'master'
-          def gitUrl = env.GIT_URL ?: 'git@github.com:xuzhang0636/PR_Hook_Test.git'
+          def branchName = env.BRANCH_NAME
+          def gitUrl = env.GIT_URL
           
           // Different checkout configuration based on whether it's a PR or push
           if (env.CHANGE_ID) {
