@@ -41,67 +41,8 @@ pipeline {
     }
     stage('Unit Test') {
       steps {
-        sh 'mvn clean test'  // 根据项目替换为实际测试命令（如 mvn test、pytest 等）
+        sh 'mvn clean test'
       }
-      post {
-        success {
-          // Update GitHub status using the GitHub plugin
-          script {
-            def commitSha = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
-            githubNotify(
-              status: 'SUCCESS',
-              context: 'jenkins/unit-test',
-              description: 'Unit tests passed successfully',
-              commitSha: commitSha
-            )
-            
-            // Only add PR comment if this is a PR
-            if (env.CHANGE_ID) {
-              def comment = """
-                ✅ Unit tests passed successfully!
-                This PR is ready to be merged.
-              """.stripIndent()
-              
-              githubNotify(
-                issueNumber: env.CHANGE_ID,
-                comment: comment
-              )
-            }
-          }
-        }
-        failure {
-          // Update GitHub status using the GitHub plugin
-          script {
-            def commitSha = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
-            githubNotify(
-              status: 'FAILURE',
-              context: 'jenkins/unit-test',
-              description: 'Unit tests failed',
-              commitSha: commitSha
-            )
-            
-            // Only add PR comment if this is a PR
-            if (env.CHANGE_ID) {
-              def comment = """
-                ❌ Unit tests failed!
-                Please fix the failing tests before merging.
-              """.stripIndent()
-              
-              githubNotify(
-                issueNumber: env.CHANGE_ID,
-                comment: comment
-              )
-            }
-          }
-        }
-      }
-    }
-  }
-  
-  post {
-    always {
-      // Clean workspace after build
-      cleanWs()
     }
   }
 }
