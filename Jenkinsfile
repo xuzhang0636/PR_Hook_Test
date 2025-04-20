@@ -4,23 +4,29 @@ pipeline {
   stages {
     stage('Checkout & Prepare') {
       steps {
-        sh 'echo Hahaha Richard'
-        checkout([
-          $class: 'GitSCM',
-          branches: [[name: env.CHANGE_BRANCH ?: env.BRANCH_NAME]],  // Use PR branch if available
-          extensions: [
-            [$class: 'PreBuildMerge',
-             options: [
-               fastForwardMode: 'FF',
-               mergeTarget: env.CHANGE_TARGET ?: env.BRANCH_NAME,
-               mergeStrategy: 'default',
-               remote: env.CHANGE_FORK ?: env.GIT_URL,
-               refspec: "+refs/heads/${env.CHANGE_BRANCH}:refs/remotes/origin/${env.CHANGE_BRANCH}"
-             ]
-            ]
-          ],
-          userRemoteConfigs: [[url: env.GIT_URL]]
-        ])
+        script {
+          // Ensure we have a valid branch name
+          def branchName = env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: 'main'
+          def targetBranch = env.CHANGE_TARGET ?: env.BRANCH_NAME ?: 'main'
+          def gitUrl = env.GIT_URL ?: 'git@github.com:xuzhang0636/PR_Hook_Test.git'
+          
+          checkout([
+            $class: 'GitSCM',
+            branches: [[name: branchName]],
+            extensions: [
+              [$class: 'PreBuildMerge',
+               options: [
+                 fastForwardMode: 'FF',
+                 mergeTarget: targetBranch,
+                 mergeStrategy: 'default',
+                 remote: env.CHANGE_FORK ?: gitUrl,
+                 refspec: "+refs/heads/${branchName}:refs/remotes/origin/${branchName}"
+               ]
+              ]
+            ],
+            userRemoteConfigs: [[url: gitUrl]]
+          ])
+        }
       }
     }
     stage('Unit Test') {
