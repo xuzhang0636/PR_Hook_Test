@@ -5,28 +5,20 @@ pipeline {
     stage('Checkout & Prepare') {
       steps {
         script {
-          // Print all environment variables using Groovy
-          println "Environment variables:"
-          env.each { key, value ->
-            println "${key} = ${value}"
-          }
+          // Print GitHub webhook payload information
+          println "\nGitHub Webhook Payload Information:"
+          // 方法1：使用 GitHub 插件提供的变量
+          println "CHANGE_ID = ${env.CHANGE_ID ?: 'Not set'}"  // PR number
+          println "CHANGE_TITLE = ${env.CHANGE_TITLE ?: 'Not set'}"  // PR title
+          println "CHANGE_AUTHOR = ${env.CHANGE_AUTHOR ?: 'Not set'}"  // PR author
+          println "CHANGE_BRANCH = ${env.CHANGE_BRANCH ?: 'Not set'}"  // PR branch
+          println "CHANGE_TARGET = ${env.CHANGE_TARGET ?: 'Not set'}"  // PR target branch
+          println "CHANGE_URL = ${env.CHANGE_URL ?: 'Not set'}"  // PR URL
           
-          // Print GitHub related information
-          println "\nGitHub related information:"
-          println "GITHUB_EVENT_NAME = ${env.GITHUB_EVENT_NAME ?: 'Not set'}"
-          println "GITHUB_REF = ${env.GITHUB_REF ?: 'Not set'}"
-          println "GITHUB_SHA = ${env.GITHUB_SHA ?: 'Not set'}"
-          println "GITHUB_REPOSITORY = ${env.GITHUB_REPOSITORY ?: 'Not set'}"
-          
-          // Print build parameters if any
-          println "\nBuild parameters:"
-          if (params) {
-            params.each { key, value ->
-              println "${key} = ${value}"
-            }
-          } else {
-            println "No build parameters set"
-          }
+          // 方法2：如果是 push 事件
+          println "GIT_BRANCH = ${env.GIT_BRANCH ?: 'Not set'}"
+          println "GIT_COMMIT = ${env.GIT_COMMIT ?: 'Not set'}"
+          println "GIT_URL = ${env.GIT_URL ?: 'Not set'}"
           
           // For push events, we only need the branch name
           def branchName = env.BRANCH_NAME
