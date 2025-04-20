@@ -5,6 +5,12 @@ pipeline {
     stage('Checkout & Prepare') {
       steps {
         script {
+          // Print all environment variables using Groovy
+          println "Environment variables:"
+          env.each { key, value ->
+            println "${key} = ${value}"
+          }
+          
           // For push events, we only need the branch name
           def branchName = env.BRANCH_NAME
           def gitUrl = env.GIT_URL
