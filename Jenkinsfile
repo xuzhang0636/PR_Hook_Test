@@ -5,27 +5,37 @@ pipeline {
     stage('Checkout & Prepare') {
       steps {
         script {
-          // Ensure we have a valid branch name
-          def branchName = env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: 'main'
-          def targetBranch = env.CHANGE_TARGET ?: env.BRANCH_NAME ?: 'main'
+          // For push events, we only need the branch name
+          def branchName = env.BRANCH_NAME ?: 'master'
           def gitUrl = env.GIT_URL ?: 'git@github.com:xuzhang0636/PR_Hook_Test.git'
           
-          checkout([
-            $class: 'GitSCM',
-            branches: [[name: branchName]],
-            extensions: [
-              [$class: 'PreBuildMerge',
-               options: [
-                 fastForwardMode: 'FF',
-                 mergeTarget: targetBranch,
-                 mergeStrategy: 'default',
-                 remote: env.CHANGE_FORK ?: gitUrl,
-                 refspec: "+refs/heads/${branchName}:refs/remotes/origin/${branchName}"
-               ]
-              ]
-            ],
-            userRemoteConfigs: [[url: gitUrl]]
-          ])
+          // Different checkout configuration based on whether it's a PR or push
+          if (env.CHANGE_ID) {
+            // PR event
+            checkout([
+              $class: 'GitSCM',
+              branches: [[name: env.CHANGE_BRANCH]],
+              extensions: [
+                [$class: 'PreBuildMerge',
+                 options: [
+                   fastForwardMode: 'FF',
+                   mergeTarget: env.CHANGE_TARGET,
+                   mergeStrategy: 'default',
+                   remote: env.CHANGE_FORK ?: gitUrl,
+                   refspec: "+refs/heads/${env.CHANGE_BRANCH}:refs/remotes/origin/${env.CHANGE_BRANCH}"
+                 ]
+                ]
+              ],
+              userRemoteConfigs: [[url: gitUrl]]
+            ])
+          } else {
+            // Push event
+            checkout([
+              $class: 'GitSCM',
+              branches: [[name: branchName]],
+              userRemoteConfigs: [[url: gitUrl]]
+            ])
+          }
         }
       }
     }
@@ -35,14 +45,14 @@ pipeline {
       }
       post {
         success {
-          // Update GitHub PR status
+          // Update GitHub commit status
           updateGitHubCommitStatus(
             state: 'SUCCESS',
             context: 'jenkins/unit-test',
             description: 'Unit tests passed successfully'
           )
           
-          // If this is a PR, add a comment
+          // Only add PR comment if this is a PR
           script {
             if (env.CHANGE_ID) {
               def comment = """
@@ -58,14 +68,14 @@ pipeline {
           }
         }
         failure {
-          // Update GitHub PR status
+          // Update GitHub commit status
           updateGitHubCommitStatus(
             state: 'FAILURE',
             context: 'jenkins/unit-test',
             description: 'Unit tests failed'
           )
           
-          // If this is a PR, add a comment
+          // Only add PR comment if this is a PR
           script {
             if (env.CHANGE_ID) {
               def comment = """
