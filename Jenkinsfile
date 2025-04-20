@@ -4,7 +4,7 @@ pipeline {
   stages {
     stage('Checkout & Prepare') {
       steps {
-        sh 'echo Hello World'
+        sh 'echo Hahaha Richard'
         checkout([
           $class: 'GitSCM',
           branches: [[name: env.CHANGE_BRANCH ?: env.BRANCH_NAME]],  // Use PR branch if available
